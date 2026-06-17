@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PixelMind AI — Turn words into stunning images</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080810;
+      --surface: #0f0f1a;
+      --border: #2a2a40;
+      --border-soft: #1a1a2e;
+      --accent: #7c3aed;
+      --accent2: #a855f7;
+      --accent-light: #c4b5fd;
+      --text: #f0eeff;
+      --muted: #9090b0;
+      --dim: #6060a0;
+      --dimmer: #3a3a5a;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Inter', system-ui, sans-serif;
+      color: var(--text);
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border-soft);
+      background: rgba(8,8,16,0.95);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .logo {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.3rem;
+      background: linear-gradient(135deg, #a78bfa, #f0abfc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-right { display: flex; gap: 12px; align-items: center; }
+    .btn-nav {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--accent-light);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-nav:hover { background: rgba(124,58,237,0.1); }
+    .btn-nav-primary {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+    .btn-nav-primary:hover { opacity: 0.88; }
+    .credits-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      background: var(--border-soft);
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--accent-light);
+    }
+    #user-greeting { font-size: 0.82rem; color: var(--muted); }
+
+    /* ── SETUP BANNER ── */
+    .setup-wrap { padding: 12px 32px; }
+    .setup-banner {
+      background: rgba(251,191,36,0.08);
+      border: 1px solid rgba(251,191,36,0.3);
+      border-radius: 12px;
+      padding: 16px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .setup-banner strong { color: #fbbf24; }
+    .setup-banner span { color: #d1a84b; font-size: 0.88rem; }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .hero-tag {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 99px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      color: var(--accent-light);
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+    .hero h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+    .hero h1 .gradient-text {
+      background: linear-gradient(135deg, #a78bfa, #f0abfc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    /* ── GENERATOR ── */
+    .gen-box { max-width: 760px; margin: 0 auto 60px; padding: 0 24px; }
+    .prompt-area {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 1rem;
+      line-height: 1.6;
+      resize: none;
+      font-family: inherit;
+      min-height: 80px;
+    }
+    textarea::placeholder { color: var(--dimmer); }
+    .options-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-soft);
+      align-items: center;
+    }
+    select {
+      background: var(--border-soft);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--accent-light);
+      padding: 7px 12px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      outline: none;
+      font-family: inherit;
+    }
+    .credits-hint { margin-left: auto; font-size: 0.78rem; color: var(--dim); }
+    .btn-generate {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 24px rgba(124,58,237,0.4);
+      transition: opacity 0.2s;
+    }
+    .btn-generate:hover { opacity: 0.88; }
+    .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── IMAGE GRID ── */
+    .img-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto 80px;
+      padding: 0 24px;
+    }
+    .img-card {
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      position: relative;
+      aspect-ratio: 1;
+    }
+    .img-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .img-placeholder .icon { font-size: 2.5rem; }
+    .img-placeholder .caption {
+      font-size: 0.7rem;
+      padding: 0 16px;
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+    }
+    .img-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .img-card:hover .img-overlay { opacity: 1; }
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── PRICING ── */
+    .pricing-section {
+      padding: 80px 24px;
+      background: rgba(124,58,237,0.03);
+      border-top: 1px solid var(--border-soft);
+    }
+    .pricing-section h2 {
+      text-align: center;
+      font-family: 'Sora', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .pricing-section > p { text-align: center; color: var(--dim); font-size: 0.9rem; }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      max-width: 900px;
+      margin: 40px auto 0;
+    }
+    .plan-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .plan-card:hover { transform: translateY(-2px); }
+    .plan-card.pro {
+      background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(168,85,247,0.1));
+      border-color: var(--accent);
+    }
+    .plan-popular { font-size: 0.7rem; color: #f0abfc; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .plan-name { font-weight: 700; font-size: 1rem; margin-bottom: 8px; }
+    .plan-price { font-family: 'Sora', sans-serif; font-size: 2.2rem; font-weight: 800; color: var(--accent-light); }
+    .plan-per { font-size: 0.75rem; color: var(--dim); margin-bottom: 16px; }
+    .plan-label { font-size: 0.82rem; color: var(--muted); margin-bottom: 20px; }
+    .btn-plan {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: transparent;
+      color: var(--accent-light);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-plan:hover { background: rgba(124,58,237,0.15); }
+    .btn-plan.pro {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      color: #fff;
+    }
+    .btn-plan.pro:hover { opacity: 0.88; }
+
+    /* ── MODAL ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 24px;
+    }
+    .overlay.active { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 440px;
+      position: relative;
+    }
+    .modal-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .modal-sub { color: var(--muted); font-size: 0.88rem; text-align: center; margin-bottom: 28px; }
+    .modal-view { display: none; }
+    .modal-view.active { display: block; }
+    .modal input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    .modal input:focus { border-color: var(--accent); }
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 8px;
+      transition: opacity 0.2s;
+    }
+    .btn-submit:hover { opacity: 0.88; }
+    .switch-text { text-align: center; font-size: 0.83rem; color: var(--dim); margin-top: 16px; }
+    .switch-link { color: var(--accent-light); cursor: pointer; font-weight: 600; }
+    .switch-link:hover { text-decoration: underline; }
+    input#verify-code { text-align: center; font-size: 1.4rem; letter-spacing: 8px; font-weight: 700; }
+
+    /* Upgrade plans in modal */
+    .upgrade-plan-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .upgrade-plan-item:hover { border-color: var(--accent); }
+    .upgrade-plan-item.pro { border-color: var(--accent); }
+    .upgrade-plan-name { font-weight: 600; font-size: 0.9rem; }
+    .upgrade-plan-label { font-size: 0.75rem; color: var(--dim); }
+    .upgrade-plan-price { font-family: 'Sora', sans-serif; font-weight: 800; color: var(--accent-light); }
+
+    /* ── TOAST ── */
+    .toast {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--border-soft);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 0.88rem;
+      z-index: 300;
+      max-width: 320px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .toast.active { display: block; }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid var(--border-soft);
+      color: var(--dimmer);
+      font-size: 0.8rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      nav { padding: 14px 16px; }
+      .hero { padding: 50px 16px 40px; }
+      .modal { padding: 28px 20px; }
+      .setup-wrap { padding: 12px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- CONFIG (edit here) -->
+<script>
+const CONFIG = {
+  APP_NAME: "PixelMind AI",
+  OPENAI_API_KEY: "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",
+  STABILITY_API_KEY: "sk-YOUR_STABILITY_KEY_HERE",
+  RESEND_API_KEY: "re_BSgKWBUV_JsLhPQv8UWB5AJ62vYLqGN4E",
+  FROM_EMAIL: "tajbutt357@gmail.com",
+  RAZORPAY_KEY: "rzp_live_YOUR_KEY_HERE",
+  SUPABASE_URL: "https://xjbpepcyelhwjrtdddzd.supabase.co",
+  SUPABASE_KEY: "sb_secret__nZ-PzaO6-cgF9GRAFSyNA_o3nKaloM",
+  PLANS: {
+    free:      { name: "Free",      price: 0,   credits: 5,     label: "5 images/month" },
+    starter:   { name: "Starter",   price: 99,  credits: 50,    label: "50 images/month" },
+    pro:       { name: "Pro",       price: 299, credits: 200,   label: "200 images/month" },
+    unlimited: { name: "Unlimited", price: 599, credits: 99999, label: "Unlimited images" }
+  }
+};
+
+const isConfigured = true;
+
+// ── Supabase Init ──
+const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+const DEMO_IMAGES = [
+  { id: 1, prompt: "A futuristic city at night",     gradient: "linear-gradient(135deg,#1a0533,#3b0764,#7c3aed)" },
+  { id: 2, prompt: "A dragon flying over mountains", gradient: "linear-gradient(135deg,#0f172a,#1e3a5f,#3b82f6)" },
+  { id: 3, prompt: "Abstract neon art",              gradient: "linear-gradient(135deg,#0d0d1a,#7c3aed,#f0abfc)" },
+  { id: 4, prompt: "Magical forest",                 gradient: "linear-gradient(135deg,#052e16,#166534,#4ade80)" },
+];
+
+// ── App State ──
+let state = {
+  user: null,
+  credits: 5,
+  images: [...DEMO_IMAGES],
+  modal: null,       // null | login | signup | verify | upgrade
+  authForm: { name: "", email: "", password: "" },
+  generating: false,
+};
+</script>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="logo" id="app-name"></div>
+  <div class="nav-right" id="nav-right"></div>
+</nav>
+
+<!-- ── SETUP BANNER ── -->
+<div class="setup-wrap" id="setup-wrap" style="display:none">
+  <div class="setup-banner">
+    <strong>⚙️ Setup Required: </strong>
+    <span>Open the CONFIG section at the top of this file and add your API keys (OpenAI, Razorpay, Supabase, Resend) to enable all features. Running in demo mode.</span>
+  </div>
+</div>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-tag">🤖 Powered by DALL-E 3 &amp; Stable Diffusion</div>
+  <h1>Generate <span class="gradient-text">stunning images</span> with AI</h1>
+  <p>Type anything. Get a beautiful image in seconds.<br>No design skills needed — just your imagination.</p>
+</div>
+
+<!-- ── GENERATOR ── -->
+<div class="gen-box">
+  <div class="prompt-area">
+    <textarea id="prompt" rows="3" placeholder="Describe your image… e.g. 'A futuristic city at night with neon lights and flying cars'"></textarea>
+    <div class="options-row">
+      <select id="style-select">
+        <option>Realistic</option><option>Anime</option><option>Oil Painting</option>
+        <option>Watercolor</option><option>3D Render</option><option>Pixel Art</option>
+        <option>Sketch</option><option>Cyberpunk</option>
+      </select>
+      <select id="size-select">
+        <option>1024x1024</option><option>1792x1024</option><option>1024x1792</option>
+      </select>
+      <span class="credits-hint" id="credits-hint">5 free credits on signup</span>
+    </div>
+  </div>
+  <button class="btn-generate" id="btn-generate">✨ Generate Image</button>
+</div>
+
+<!-- ── IMAGE GRID ── -->
+<div class="img-grid" id="img-grid"></div>
+
+<!-- ── PRICING ── -->
+<section class="pricing-section">
+  <h2>Simple, transparent pricing</h2>
+  <p>Start free — upgrade when you need more</p>
+  <div class="pricing-grid" id="pricing-grid"></div>
+</section>
+
+<!-- ── MODAL ── -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+
+    <!-- LOGIN -->
+    <div class="modal-view" id="view-login">
+      <div class="modal-title">Welcome back 👋</div>
+      <div class="modal-sub">Login to continue generating images</div>
+      <input id="login-email" type="email" placeholder="Email address" />
+      <input id="login-password" type="password" placeholder="Password" />
+      <button class="btn-submit" onclick="handleLogin()">Login →</button>
+      <div class="switch-text">Don't have an account? <span class="switch-link" onclick="openModal('signup')">Sign up free</span></div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="modal-view" id="view-signup">
+      <div class="modal-title">Create account ✨</div>
+      <div class="modal-sub">5 free credits — no card required</div>
+      <input id="signup-name" type="text" placeholder="Your name" />
+      <input id="signup-email" type="email" placeholder="Email address" />
+      <input id="signup-password" type="password" placeholder="Create password" />
+      <button class="btn-submit" onclick="handleSignup()">Create Account →</button>
+      <div class="switch-text">Already have an account? <span class="switch-link" onclick="openModal('login')">Login</span></div>
+    </div>
+
+    <!-- VERIFY -->
+    <div class="modal-view" id="view-verify">
+      <div class="modal-title">Verify Email 📧</div>
+      <div class="modal-sub">We sent a 6-digit code to<br><strong id="verify-email-display"></strong></div>
+      <input id="verify-code" type="text" maxlength="6" placeholder="000000" />
+      <button class="btn-submit" onclick="handleVerify()">Verify &amp; Continue →</button>
+      <div class="switch-text"><span class="switch-link" onclick="showToast('📧 Code resent!')">Resend code</span></div>
+    </div>
+
+    <!-- UPGRADE -->
+    <div class="modal-view" id="view-upgrade">
+      <div class="modal-title">You're out of credits ⚡</div>
+      <div class="modal-sub">Upgrade to keep generating amazing images</div>
+      <div id="upgrade-plans"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── FOOTER ── -->
+<footer>© 2025 <span id="footer-name"></span> • Built to sell — configure &amp; deploy</footer>
+
+<script>
+// ── Init ──
+document.getElementById('app-name').textContent = CONFIG.APP_NAME + ' ✦';
+document.getElementById('footer-name').textContent = CONFIG.APP_NAME;
+if (!isConfigured) document.getElementById('setup-wrap').style.display = 'block';
+
+renderNav();
+renderGrid();
+renderPricing();
+
+// ── RENDER NAV ──
+function renderNav() {
+  const navRight = document.getElementById('nav-right');
+  if (state.user) {
+    navRight.innerHTML = `
+      <div class="credits-bar">⚡ <span id="credits-count">${state.credits}</span> credits</div>
+      <span id="user-greeting">Hi, ${state.user.name}</span>
+      <button class="btn-nav" onclick="logout()">Logout</button>
+    `;
+    document.getElementById('credits-hint').textContent = `⚡ ${state.credits} credits left`;
+  } else {
+    navRight.innerHTML = `
+      <button class="btn-nav" onclick="openModal('login')">Login</button>
+      <button class="btn-nav-primary" onclick="openModal('signup')">Sign Up Free</button>
+    `;
+    document.getElementById('credits-hint').textContent = '5 free credits on signup';
+  }
+}
+
+// ── RENDER IMAGE GRID ──
+function renderGrid() {
+  const grid = document.getElementById('img-grid');
+  grid.innerHTML = '';
+  state.images.forEach(img => {
+    const card = document.createElement('div');
+    card.className = 'img-card';
+    if (img.url) {
+      card.innerHTML = `
+        <img src="${img.url}" alt="${img.prompt}" />
+        <div class="img-overlay">
+          <button class="icon-btn" title="Download" onclick="showToast('📥 Downloading...')">⬇</button>
+          <button class="icon-btn" title="Share" onclick="showToast('🔗 Link copied!')">🔗</button>
+        </div>`;
+    } else {
+      card.innerHTML = `
+        <div class="img-placeholder" style="background:${img.gradient}">
+          <span class="icon">${img.demo ? '🎨' : '🖼️'}</span>
+          <span class="caption">${img.prompt}</span>
+        </div>
+        <div class="img-overlay">
+          <button class="icon-btn" title="Download" onclick="showToast('📥 Downloading...')">⬇</button>
+          <button class="icon-btn" title="Share" onclick="showToast('🔗 Link copied!')">🔗</button>
+        </div>`;
+    }
+    grid.appendChild(card);
+  });
+}
+
+// ── RENDER PRICING ──
+function renderPricing() {
+  const grid = document.getElementById('pricing-grid');
+  grid.innerHTML = '';
+  Object.entries(CONFIG.PLANS).forEach(([key, plan]) => {
+    const isPro = key === 'pro';
+    const card = document.createElement('div');
+    card.className = 'plan-card' + (isPro ? ' pro' : '');
+    card.innerHTML = `
+      ${isPro ? '<div class="plan-popular">⭐ Most Popular</div>' : ''}
+      <div class="plan-name">${plan.name}</div>
+      <div class="plan-price">${plan.price === 0 ? 'Free' : '₹' + plan.price}</div>
+      <div class="plan-per">${plan.price > 0 ? '/month' : 'forever'}</div>
+      <div class="plan-label">${plan.label}</div>
+      <button class="btn-plan${isPro ? ' pro' : ''}" onclick="${plan.price === 0 ? "openModal('signup')" : `handlePayment('${key}')`}">
+        ${plan.price === 0 ? 'Get Started' : 'Buy Now'}
+      </button>`;
+    grid.appendChild(card);
+  });
+
+  // Upgrade modal plans
+  const upgradePlans = document.getElementById('upgrade-plans');
+  upgradePlans.innerHTML = '';
+  ['starter','pro','unlimited'].forEach(key => {
+    const plan = CONFIG.PLANS[key];
+    const item = document.createElement('div');
+    item.className = 'upgrade-plan-item' + (key === 'pro' ? ' pro' : '');
+    item.onclick = () => handlePayment(key);
+    item.innerHTML = `
+      <div>
+        <div class="upgrade-plan-name">${plan.name}</div>
+        <div class="upgrade-plan-label">${plan.label}</div>
+      </div>
+      <div class="upgrade-plan-price">₹${plan.price}/mo</div>`;
+    upgradePlans.appendChild(item);
+  });
+}
+
+// ── MODAL ──
+function openModal(name) {
+  state.modal = name;
+  document.getElementById('overlay').classList.add('active');
+  ['login','signup','verify','upgrade'].forEach(v => {
+    document.getElementById('view-' + v).classList.remove('active');
+  });
+  document.getElementById('view-' + name).classList.add('active');
+}
+function closeModal() {
+  state.modal = null;
+  document.getElementById('overlay').classList.remove('active');
+}
+document.getElementById('overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── AUTH ──
+async function handleSignup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  if (!name || !email || !password) { showToast('⚠️ Please fill all fields'); return; }
+  
+  showToast('⏳ Account bana rahe hain...');
+  
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { name } }
+  });
+  
+  if (error) { showToast('❌ ' + error.message); return; }
+  
+  state.authForm = { name, email, password };
+  document.getElementById('verify-email-display').textContent = email;
+  openModal('verify');
+  showToast('📧 OTP code bheja gaya ' + email + ' par!');
+}
+
+async function handleVerify() {
+  const code = document.getElementById('verify-code').value;
+  if (code.length < 4) { showToast('⚠️ Valid code daalo'); return; }
+  
+  showToast('⏳ Verify ho raha hai...');
+  
+  const { data, error } = await supabase.auth.verifyOtp({
+    email: state.authForm.email,
+    token: code,
+    type: 'signup'
+  });
+  
+  if (error) { showToast('❌ Galat code! Dobara try karo'); return; }
+  
+  state.user = { name: state.authForm.name, email: state.authForm.email, plan: 'free', credits: 5 };
+  state.credits = 5;
+  closeModal();
+  renderNav();
+  showToast('✅ Welcome, ' + state.user.name + '!');
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) { showToast('⚠️ Email aur password daalo'); return; }
+  
+  showToast('⏳ Login ho raha hai...');
+  
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  
+  if (error) { showToast('❌ Galat email ya password!'); return; }
+  
+  const name = data.user.user_metadata?.name || email.split('@')[0];
+  state.user = { name, email, plan: 'free', credits: 5 };
+  state.credits = 5;
+  closeModal();
+  renderNav();
+  showToast('✅ Login ho gaya!');
+}
+
+async function logout() {
+  await supabase.auth.signOut();
+  state.user = null;
+  renderNav();
+  showToast('Logout ho gaye!');
+}
+
+// ── GENERATE ──
+document.getElementById('btn-generate').addEventListener('click', handleGenerate);
+
+async function handleGenerate() {
+  if (!state.user) { openModal('login'); return; }
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) { showToast('⚠️ Write a prompt first!'); return; }
+  if (state.credits <= 0) { openModal('upgrade'); return; }
+
+  const btn = document.getElementById('btn-generate');
+  btn.disabled = true;
+  btn.textContent = '✨ Generating your image...';
+
+  try {
+    const res = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${CONFIG.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "dall-e-3",
+        prompt: `${prompt}, style: ${document.getElementById('style-select').value}`,
+        n: 1,
+        size: document.getElementById('size-select').value
+      })
+    });
+    const data = await res.json();
+    const imgUrl = data.data[0].url;
+    state.images.unshift({ id: Date.now(), prompt, url: imgUrl });
+    state.credits--;
+    renderGrid();
+    renderNav();
+    showToast('✅ Image generated!');
+  } catch(e) {
+    showToast('❌ Error generating image. Check API key.');
+  }
+  btn.disabled = false;
+  btn.textContent = '✨ Generate Image';
+}
+
+// ── PAYMENT ──
+function handlePayment(plan) {
+  if (!state.user) { openModal('login'); return; }
+  if (!isConfigured) {
+    showToast('💳 Payment demo — add Razorpay key to enable real payments');
+    // In production: load Razorpay SDK and open checkout
+    return;
+  }
+}
+
+// ── TOAST ──
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('active');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('active'), 3500);
+}
+</script>
+</body>
+</html>
